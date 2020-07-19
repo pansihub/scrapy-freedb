@@ -66,6 +66,9 @@ class Plugin(SpiderPlugin):
         return ret_dict
 
     def perform(self, settings: Settings, plugin_settings):
+        if not get_bool(plugin_settings.get('ENABLED', 'false')):
+            return
+
         item_pipelines = settings.getdict('ITEM_PIPELINES')
         item_pipelines['scrapy_freedb.middleware.pipeline.FreedbSaveItemPipeline'] = 100
         settings.set('ITEM_PIPELINES', item_pipelines)
