@@ -17,58 +17,6 @@ class Plugin(SpiderPlugin):
     ]
     plugin_name = 'freedb_plugin'
 
-    def validate(self, parameters):
-        try:
-            enabled = get_bool(parameters['ENABLED'])
-        except (ValueError, KeyError):
-            return False
-
-        return True
-
-    def execute(self, parameters):
-        enabled = get_bool(parameters.get('ENABLED', True))
-        ret_dict = []
-        if enabled:
-            ret_dict.extend([
-                {
-                    'op': 'set_dict',
-                    'target': 'ITEM_PIPELINES',
-                    'key': 'freedb_plugin.middleware.pipeline.FreedbSaveItemPipeline',
-                    'value': 100,
-                },
-                {
-                    'op': 'set_var',
-                    'var': 'DUPEFILTER_CLASS',
-                    'value': 'freedb_plugin.middleware.dupefilter.FreedbDupefilter'
-                },
-                {
-                    'op': 'set_var',
-                    'var': 'FREEDB_BASEURL',
-                    'value': parameters.get('freedb_baseurl')
-                },
-                {
-                    'op': 'set_var',
-                    'var': 'FREEDB_TOKEN',
-                    'value': parameters.get('freedb_token')
-                },
-                {
-                    'op': 'set_var',
-                    'var': 'FREEDB_DBNAME',
-                    'value': parameters.get('freedb_dbname')
-                },
-                {
-                    'op': 'set_var',
-                    'var': 'FREEDB_COLNAME',
-                    'value': parameters.get('freedb_colname')
-                },
-                {
-                    'op': 'set_var',
-                    'var': 'FREEDB_ID_MAPPER',
-                    'value': parameters.get('freedb_id_mapper')
-                }
-            ])
-        return ret_dict
-
     def perform(self, settings: Settings, plugin_settings):
         if not get_bool(plugin_settings.get('ENABLED', 'false')):
             return
@@ -97,17 +45,3 @@ def get_bool(value):
         raise ValueError("Supported values for boolean settings "
                          "are 0/1, True/False, '0'/'1', "
                          "'True'/'False' and 'true'/'false'")
-
-
-TEMPLATE = '''
-try: SPIDER_MIDDLEWARES
-except NameError: SPIDER_MIDDLEWARES = {}
-SPIDER_MIDDLEWARES['scrapy_splitvariants.SplitVariantsMiddleware']= 100
-
-SPLITVARIANTS_ENABLED = %(enabled)s
-'''
-
-
-def execute(settings):
-    enabled = get_bool(settings.get('ENABLED', True))
-    return TEMPLATE % {'enabled': enabled}
