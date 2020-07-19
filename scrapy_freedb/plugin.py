@@ -1,6 +1,10 @@
 import json
+import logging
 from .base import SpiderPlugin, BooleanPluginParameter, StringPluginParameter
 from scrapy.settings import Settings
+
+
+logger = logging.getLogger(__name__)
 
 
 class Plugin(SpiderPlugin):
@@ -68,6 +72,8 @@ class Plugin(SpiderPlugin):
     def perform(self, settings: Settings, plugin_settings):
         if not get_bool(plugin_settings.get('ENABLED', 'false')):
             return
+
+        logger.info('scrapy-freedb plugin enabled.')
 
         item_pipelines = settings.getdict('ITEM_PIPELINES')
         item_pipelines['scrapy_freedb.middleware.pipeline.FreedbSaveItemPipeline'] = 100
