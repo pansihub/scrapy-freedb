@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, date
 from urllib.parse import urljoin
 from typing import Union
 import requests
@@ -16,6 +17,14 @@ class CollectionAlreadyExistError(Exception):
 
 class DocumentDotExist(Exception):
     pass
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, (datetime, date)):
+            return o.isoformat()
+
+        return json.JSONEncoder.default(self, o)
 
 
 class TokenAuth(AuthBase):
@@ -61,7 +70,9 @@ class FreedbClient:
             raise
 
     def save_document(self, db_name, col_name, doc):
-        response = self.session.post(self._urljoin(f'/api/databases/{db_name}/collections/{col_name}/documents'), json=doc)
+        response = self.session.post(self._urljoin(f'/api/databases/{db_name}/collections/{col_name}/documents'), 
+            data=json.dumps(doc, cls=DateTimeEncoder), 
+            headers={'Content-Type': 'application/json'})
         response.raise_for_status()
         return response.json()[0]
 
