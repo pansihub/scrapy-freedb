@@ -8,6 +8,10 @@ from .freedb import FreedbClient, DocumentDotExist
 logger = logging.getLogger(__name__)
 
 
+def null_id_mapper(request):
+    return None
+
+
 class FreedbDupefilter(BaseDupeFilter):
     '''SpiderStateService request duplicates filter.
     '''
@@ -23,9 +27,14 @@ class FreedbDupefilter(BaseDupeFilter):
         self.logdupes = True
         self.stats = stats
         self.visit_cache = set()
-        id_mapper_module_name, id_mapper_func_name = settings.get('FREEDB_ID_MAPPER').split(':')
-        id_mapper_module = importlib.import_module(id_mapper_module_name)
-        self.id_mapper = getattr(id_mapper_module, id_mapper_func_name)
+        
+        free_id_mapper_setting = settings.get('FREEDB_ID_MAPPER')
+        if free_id_mapper_setting:
+            id_mapper_module_name, id_mapper_func_name = free_id_mapper_setting.split(':')
+            id_mapper_module = importlib.import_module(id_mapper_module_name)
+            self.id_mapper = getattr(id_mapper_module, id_mapper_func_name)
+        else:
+            self.id_mapper = null_id_mapper
 
     @classmethod
     def from_settings(cls, settings):
