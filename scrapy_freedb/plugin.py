@@ -16,6 +16,7 @@ class Plugin(SpiderPlugin):
         StringPluginParameter('freedb_colname'),
     ]
     plugin_name = 'freedb_plugin'
+    settings = None
 
     def perform(self, settings: Settings, plugin_settings):
         if not get_bool(plugin_settings.get('ENABLED', 'false')):
@@ -32,6 +33,10 @@ class Plugin(SpiderPlugin):
         settings.set('FREEDB_DBNAME', plugin_settings.get('FREEDB_DBNAME'))
         settings.set('FREEDB_COLNAME', plugin_settings.get('FREEDB_COLNAME'))
         settings.set('FREEDB_ID_MAPPER', plugin_settings.get('FREEDB_ID_MAPPER'))
+
+    def apply(self, settings, **kwargs):
+        plugin_settings = self.settings or {}
+        self.perform(settings, plugin_settings)
 
 
 def get_bool(value):

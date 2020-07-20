@@ -45,7 +45,7 @@ class FreedbDupefilter(BaseDupeFilter):
 
     @classmethod
     def from_crawler(cls, crawler):
-        logger.debug('SilkyyDupeFilter from_crawler')
+        logger.debug('FreedbDupefilter from_crawler')
         return cls.from_spider(crawler.spider)
 
     @classmethod
