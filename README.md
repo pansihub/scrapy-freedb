@@ -41,3 +41,21 @@ An example of id mapper can be a sha256 hash of request url.
         hash = hashlib.sha256()
         hash.update(url.encode())
         return hash.hexdigest()
+
+## pansi plugin spider.json
+
+    {
+        "plugins":[
+            "git+https://github.com/pansihub/scrapy-freedb.git"
+        ]
+        "plugin_settings":{
+            "scrapy-freedb":{
+                "ENABLED": true,
+                "FREEDB_BASEURL":"",
+                "FREEDB_TOKEN":"",
+                "FREEDB_DBNAME":"",
+                "FREEDB_COLNAME":"",
+                "FREEDB_ID_MAPPER:""
+            }
+        }
+    }
