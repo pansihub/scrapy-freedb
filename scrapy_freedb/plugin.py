@@ -33,6 +33,7 @@ class Plugin(SpiderPlugin):
         settings.set('FREEDB_DBNAME', plugin_settings.get('FREEDB_DBNAME'))
         settings.set('FREEDB_COLNAME', plugin_settings.get('FREEDB_COLNAME'))
         settings.set('FREEDB_ID_MAPPER', plugin_settings.get('FREEDB_ID_MAPPER'))
+        settings.set('FREEDB_ID_FIELD', plugin_settings.get('FREEDB_ID_FIELD'))
 
     def apply(self, settings, **kwargs):
         plugin_settings = self.settings or {}
