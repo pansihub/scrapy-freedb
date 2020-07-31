@@ -52,7 +52,7 @@ An example of id mapper can be a sha256 hash of request url.
 
     {
         "plugins":[
-            "git+https://github.com/pansihub/scrapy-freedb.git"
+            "scrapy-freedb"
         ]
         "plugin_settings":{
             "scrapy-freedb":{
