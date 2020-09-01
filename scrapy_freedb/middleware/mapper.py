@@ -12,3 +12,6 @@ def url_sha1(request):
     hash = hashlib.sha1()
     hash.update(url.encode())
     return hash.hexdigest()
+
+def url(request):
+    return request.url
