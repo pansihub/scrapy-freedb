@@ -29,6 +29,7 @@ class FreedbDupefilter(BaseDupeFilter):
         self.visit_cache = set()
         
         free_id_mapper_setting = settings.get('FREEDB_ID_MAPPER')
+        self.id_field = settings.get('FREEDB_ID_FIELD')
         if free_id_mapper_setting:
             id_mapper_module_name, id_mapper_func_name = free_id_mapper_setting.split(':')
             id_mapper_module = importlib.import_module(id_mapper_module_name)
@@ -87,6 +88,12 @@ class FreedbDupefilter(BaseDupeFilter):
             self.visit_cache.add(fp)
 
     def get_doc_id(self, request):
+        if 'item' in request.meta and self.id_field:
+            item = request.meta['item']
+            item_id = item.get(self.id_field)
+            if item_id:
+                return item_id
+
         if self.id_mapper:
             id_ = self.id_mapper(request)
             logger.debug(f'id for request {request.method} {request.url} is {id_}')

@@ -1,6 +1,9 @@
 # scrapy-freedb
-A scrapy plugin support persist data on freedb and 
-make incremental crawling.
+
+This is a scrapy plugin support persisting data on freedb and/or 
+archieving incremental crawling.
+
+## Intruduction
 
 It has a dupefilter wich interact to freedb to check 
 there the document id is already existing.
@@ -9,6 +12,8 @@ To use this plugin directly in scrapy, add these
 settings in spider settings.py.
 
 ## Persist data
+
+spider settings:
 
     ITEM_PIPELINES = {
         'scrapy_freedb.middleware.pipeline.FreedbSaveItemPipeline': 300,
@@ -47,6 +52,24 @@ An example of id mapper can be a sha256 hash of request url.
         hash = hashlib.sha256()
         hash.update(url.encode())
         return hash.hexdigest()
+
+### Better solution of incremental crwaling
+
+Since a dupelicate (against to the existing record) request filtering is on a Request object, 
+and item persistent is on an Item object.
+There may be no direct mapping between these two objects, and providing a consistant id mapper
+function for the two types cause it too complicated. 
+
+A good practice for this is to ignore the `id_mapper` settings at all. Each time you want to 
+retrieve a potential item from a request, create such an Item instance, attach it to the 
+`item` field of requests meta object (`request.meta['item']`), make sure you have configured
+apropriate `id_field` settings and assigned correct value for this concrete request. Because
+you have to provide an `id` before actually fetch the page, it is certainly you have to 
+pick an `id` field from the information before the page, i.e. guess a thread id from the known
+url, or just use the `url` of request is an option.
+
+
+
 
 ## pansi plugin spider.json
 
