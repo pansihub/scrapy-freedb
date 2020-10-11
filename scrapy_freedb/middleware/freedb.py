@@ -74,7 +74,7 @@ class FreedbClient:
             data=json.dumps(doc, cls=DateTimeEncoder), 
             headers={'Content-Type': 'application/json'})
         response.raise_for_status()
-        return response.json()[0]
+        return response.json()
 
     def query(self, db_name, col_name, query=None, skip=None):
         params = {}
