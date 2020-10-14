@@ -27,6 +27,7 @@ class FreedbDupefilter(BaseDupeFilter):
         self.logdupes = True
         self.stats = stats
         self.visit_cache = set()
+        self.docs_existence_cache = {} # dict[str, bool]
         
         free_id_mapper_setting = settings.get('FREEDB_ID_MAPPER')
         self.id_field = settings.get('FREEDB_ID_FIELD')
@@ -63,6 +64,21 @@ class FreedbDupefilter(BaseDupeFilter):
         settings = spider.settings
         return cls.from_settings(settings)
 
+    def document_exists(self, doc_id):
+        cached_doc_existence = self.docs_existence_cache.get(doc_id)
+        if cached_doc_existence is not None:
+            return cached_doc_existence
+
+        doc_existence = False
+        try:
+            doc = self.client.get_document(self.db_name, self.col_name, doc_id)
+            doc_existence = True
+        except DocumentDotExist:
+            doc_existence = False
+        
+        self.docs_existence_cache[doc_id] = doc_existence
+        return doc_existence
+
     def request_seen(self, request):
         """Returns True if request was already seen.
         Parameters
@@ -76,16 +92,11 @@ class FreedbDupefilter(BaseDupeFilter):
         if fp in self.visit_cache:
             return True
         
-        try:
-            doc_id = self.get_doc_id(request)
-            if doc_id is None:
-                raise DocumentDotExist()
-            doc = self.client.get_document(self.db_name, self.col_name, doc_id)
-            return True
-        except DocumentDotExist:
-            return False
-        finally:
-            self.visit_cache.add(fp)
+        doc_id = self.get_doc_id(request)
+        doc_existence = doc_id and self.document_exists(doc_id)
+
+        self.visit_cache.add(fp)
+        return doc_existence
 
     def get_doc_id(self, request):
         if 'item' in request.meta and self.id_field:
