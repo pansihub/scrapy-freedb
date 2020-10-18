@@ -3,8 +3,30 @@ from datetime import datetime, date
 from urllib.parse import urljoin
 from typing import Union
 import requests
-from requests.auth import HTTPBasicAuth, AuthBase
 from requests import HTTPError
+from requests.auth import HTTPBasicAuth, AuthBase
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+
+def requests_retry_session(
+    retries=3,
+    backoff_factor=0.3,
+    status_forcelist=(500, 502, 504),
+    session=None,
+):
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry, )
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 class DatabaseAlreadyExistError(Exception):
@@ -39,7 +61,7 @@ class TokenAuth(AuthBase):
 class FreedbClient:
     def __init__(self, baseurl, token: Union[str, tuple]):
         self._baseurl = baseurl
-        session = requests.Session()
+        session = requests_retry_session()
         if isinstance(token, str):
             session.auth = TokenAuth(token)
         else:
@@ -72,7 +94,8 @@ class FreedbClient:
     def save_document(self, db_name, col_name, doc):
         response = self.session.post(self._urljoin(f'/api/databases/{db_name}/collections/{col_name}/documents'), 
             data=json.dumps(doc, cls=DateTimeEncoder), 
-            headers={'Content-Type': 'application/json'})
+            headers={'Content-Type': 'application/json'}, 
+            timeout=30)
         response.raise_for_status()
         return response.json()
 
@@ -92,7 +115,8 @@ class FreedbClient:
         return response.json()
 
     def get_document(self, db_name, col_name, doc_id):
-        response = self.session.get(self._urljoin(f'/api/databases/{db_name}/collections/{col_name}/documents/{doc_id}'))
+        response = self.session.get(self._urljoin(f'/api/databases/{db_name}/collections/{col_name}/documents/{doc_id}'), 
+                                    timeout=30)
         try:
             response.raise_for_status()
         except HTTPError as ex:
