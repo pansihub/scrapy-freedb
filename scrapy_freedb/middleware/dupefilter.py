@@ -12,6 +12,11 @@ def null_id_mapper(request):
     return None
 
 
+def meta_id_mapper(request):
+    meta = request.meta
+    return meta.get('id')
+
+
 class FreedbDupefilter(BaseDupeFilter):
     '''SpiderStateService request duplicates filter.
     '''
@@ -36,7 +41,7 @@ class FreedbDupefilter(BaseDupeFilter):
             id_mapper_module = importlib.import_module(id_mapper_module_name)
             self.id_mapper = getattr(id_mapper_module, id_mapper_func_name)
         else:
-            self.id_mapper = null_id_mapper
+            self.id_mapper = meta_id_mapper
 
     @classmethod
     def from_settings(cls, settings):
