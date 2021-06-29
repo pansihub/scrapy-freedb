@@ -23,7 +23,7 @@ class FreedbDupefilter(BaseDupeFilter):
     logger = logger
     visit_cache = None
 
-    def __init__(self, db_name, col_name, client: FreedbClient, settings, debug=False, stats=None):
+    def __init__(self, db_name, col_name, client: FreedbClient, settings, debug=False, stats=None, exist_policy=None):
         self.db_name = db_name
         self.col_name = col_name
         self.client = client
@@ -33,6 +33,7 @@ class FreedbDupefilter(BaseDupeFilter):
         self.stats = stats
         self.visit_cache = set()
         self.docs_existence_cache = {} # dict[str, bool]
+        self.exist_policy = exist_policy
         
         free_id_mapper_setting = settings.get('FREEDB_ID_MAPPER')
         self.id_field = settings.get('FREEDB_ID_FIELD')
@@ -56,8 +57,9 @@ class FreedbDupefilter(BaseDupeFilter):
         token = settings.get('FREEDB_TOKEN')
         db_name = settings.get('FREEDB_DBNAME')
         col_name = settings.get('FREEDB_COLNAME')
+        exist_policy = settings.get('FREEDB_EXIST_POLICY')
         client = FreedbClient(base_url, token)
-        return cls(db_name, col_name, client, settings)
+        return cls(db_name, col_name, client, settings, exist_policy=exist_policy)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -76,7 +78,7 @@ class FreedbDupefilter(BaseDupeFilter):
 
         doc_existence = False
         try:
-            doc = self.client.get_document(self.db_name, self.col_name, doc_id)
+            doc = self.client.get_document_head(self.db_name, self.col_name, doc_id)
             doc_existence = True
         except DocumentDotExist:
             doc_existence = False
@@ -96,12 +98,15 @@ class FreedbDupefilter(BaseDupeFilter):
         fp = self.request_fingerprint(request)
         if fp in self.visit_cache:
             return True
-        
-        doc_id = self.get_doc_id(request)
-        doc_existence = doc_id and self.document_exists(doc_id)
 
-        self.visit_cache.add(fp)
-        return doc_existence
+        try:
+            doc_id = self.get_doc_id(request)
+            if self.exist_policy and self.exist_policy != 'sklp':
+                return False
+
+            return doc_id and self.document_exists(doc_id)
+        finally:
+            self.visit_cache.add(fp)
 
     def get_doc_id(self, request):
         if 'item' in request.meta and self.id_field:
@@ -109,6 +114,9 @@ class FreedbDupefilter(BaseDupeFilter):
             item_id = item.get(self.id_field)
             if item_id:
                 return item_id
+
+        if self.id_field and self.id_field in request.meta:
+            return request.meta.get(self.id_field)
 
         if self.id_mapper:
             id_ = self.id_mapper(request)

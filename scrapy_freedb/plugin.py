@@ -34,6 +34,7 @@ class Plugin(SpiderPlugin):
         settings.set('FREEDB_COLNAME', plugin_settings.get('FREEDB_COLNAME'))
         settings.set('FREEDB_ID_MAPPER', plugin_settings.get('FREEDB_ID_MAPPER'))
         settings.set('FREEDB_ID_FIELD', plugin_settings.get('FREEDB_ID_FIELD'))
+        settings.set('FREEDB_EXIST_POLICY', plugin_settings.get('FREEDB_EXIST_POLICY'))
 
 def get_bool(value):
     try:
