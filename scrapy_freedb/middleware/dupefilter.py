@@ -48,6 +48,10 @@ class FreedbDupefilter(BaseDupeFilter):
         :return:
         '''
         base_url = settings.get("FREEDB_BASEURL")
+        if base_url is None:
+            raise Exception("FREEDB_BASEURL not specified.")
+
+        logger.debug(f'FREEDB_BASEURL: {base_url}', )
         token = settings.get('FREEDB_TOKEN')
         db_name = settings.get('FREEDB_DBNAME')
         col_name = settings.get('FREEDB_COLNAME')

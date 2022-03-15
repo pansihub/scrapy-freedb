@@ -19,6 +19,9 @@ class Plugin(SpiderPlugin):
     settings = None
 
     def perform(self, settings: Settings, plugin_settings):
+        if settings.get("FREEDB_ENABLED") == False:
+            return
+
         if not get_bool(plugin_settings.get('ENABLED', 'false')):
             return
 
@@ -28,12 +31,31 @@ class Plugin(SpiderPlugin):
         item_pipelines['scrapy_freedb.middleware.pipeline.FreedbSaveItemPipeline'] = 100
         settings.set('ITEM_PIPELINES', item_pipelines)
         settings.set('DUPEFILTER_CLASS', 'scrapy_freedb.middleware.dupefilter.FreedbDupefilter')
-        settings.set('FREEDB_BASEURL', plugin_settings.get('FREEDB_BASEURL'))
-        settings.set('FREEDB_TOKEN', plugin_settings.get('FREEDB_TOKEN'))
-        settings.set('FREEDB_DBNAME', plugin_settings.get('FREEDB_DBNAME'))
-        settings.set('FREEDB_COLNAME', plugin_settings.get('FREEDB_COLNAME'))
-        settings.set('FREEDB_ID_MAPPER', plugin_settings.get('FREEDB_ID_MAPPER'))
-        settings.set('FREEDB_ID_FIELD', plugin_settings.get('FREEDB_ID_FIELD'))
+        # only write setting when exact value assigned. 
+        # settings also can be populated through -s parameters.
+        freedb_baseurl = plugin_settings.get('FREEDB_BASEURL')
+        if freedb_baseurl:
+            settings.set('FREEDB_BASEURL', freedb_baseurl)
+
+        freedb_token = plugin_settings.get('FREEDB_TOKEN')
+        if freedb_token:
+            settings.set('FREEDB_TOKEN', freedb_token)
+
+        freedb_dbname = plugin_settings.get('FREEDB_DBNAME')
+        if freedb_dbname:
+            settings.set('FREEDB_DBNAME', freedb_dbname)
+
+        freedb_colname = plugin_settings.get('FREEDB_COLNAME')
+        if freedb_colname:
+            settings.set('FREEDB_COLNAME', freedb_colname)
+
+        freedb_id_mapper = plugin_settings.get('FREEDB_ID_MAPPER')
+        if freedb_id_mapper:
+            settings.set('FREEDB_ID_MAPPER', freedb_id_mapper)
+
+        freedb_id_field = plugin_settings.get('FREEDB_ID_FIELD')
+        if freedb_id_field:
+            settings.set('FREEDB_ID_FIELD', freedb_id_field)
 
     def apply(self, settings, **kwargs):
         plugin_settings = self.settings or {}
