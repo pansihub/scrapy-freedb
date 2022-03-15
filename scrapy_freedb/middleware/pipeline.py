@@ -6,18 +6,19 @@ logger = logging.getLogger(__name__)
 
 
 class FreedbSaveItemPipeline():
-    def __init__(self, db_name, col_name, client: FreedbClient, id_field):
+    def __init__(self, db_name, col_name, client: FreedbClient, id_field, exist_policy=None):
         self.db_name = db_name
         self.col_name = col_name
         self.client = client
         self._id_field = id_field
+        self.exist_policy = exist_policy
     
     def process_item(self, item, spider):
         logger.debug('FreedbSaveItemPipeline process_item')
         item_dict = dict(item)
         if 'id' not in item_dict and self._id_field:
             item_dict['id'] = item_dict.get(self._id_field)
-        self.client.save_document(self.db_name, self.col_name, item_dict)
+        self.client.save_document(self.db_name, self.col_name, item_dict, exist=self.exist_policy)
         spider.logger.debug('FreedbSaveItemPipeline process_item done')
         return item
 
@@ -30,6 +31,7 @@ class FreedbSaveItemPipeline():
         db_name = settings.get('FREEDB_DBNAME')
         col_name = settings.get('FREEDB_COLNAME')
         id_field = settings.get('FREEDB_ID_FIELD')
+        exist_policy = settings.get('FREEDB_EXIST_POLICY')
         
         client = FreedbClient(base_url, token)
-        return cls(db_name, col_name, client, id_field)
+        return cls(db_name, col_name, client, id_field, exist_policy=exist_policy)

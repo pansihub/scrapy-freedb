@@ -69,8 +69,6 @@ pick an `id` field from the information before the page, i.e. guess a thread id 
 url, or just use the `url` of request is an option.
 
 
-
-
 ## pansi plugin spider.json
 
     {
@@ -88,3 +86,21 @@ url, or just use the `url` of request is an option.
             }
         }
     }
+
+## parameters
+Plugin parameter can be setted both in scrapy settings file and in pancli yaml config file.
+
+* FREEDB_EXIST_POLICY str, default=None
+
+`FREEDB_EXIST_POLICY` (new in v0.1.7) setting can affect existing doc checking and document 
+
+saving. If it is not setted (default=None) or `skip`, the pipeline will post 
+document in `exist=skip` mode (see freedb doc), and it will not fetch an 
+existing which is controlled by the dupefilter.
+
+Otherwise, it will ignore existing doc cheching (donot filter existing doc), 
+and post doc with the `exist` pamameter (see freedb doc).
+
+
+
+

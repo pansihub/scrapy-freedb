@@ -18,10 +18,7 @@ class Plugin(SpiderPlugin):
     plugin_name = 'freedb_plugin'
     settings = None
 
-    def perform(self, settings: Settings, plugin_settings):
-        if settings.get("FREEDB_ENABLED") == False:
-            return
-
+    def perform(self, settings: Settings = None, plugin_settings: dict = None, **kwargs):
         if not get_bool(plugin_settings.get('ENABLED', 'false')):
             return
 

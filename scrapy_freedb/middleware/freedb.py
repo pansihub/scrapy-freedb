@@ -91,9 +91,13 @@ class FreedbClient:
                 raise CollectionAlreadyExistError() from ex
             raise
 
-    def save_document(self, db_name, col_name, doc):
+    def save_document(self, db_name, col_name, doc, exist=None):
+        params = {}
+        if exist:
+            params['exist'] = exist
         response = self.session.post(self._urljoin(f'/api/databases/{db_name}/collections/{col_name}/documents'), 
             data=json.dumps(doc, cls=DateTimeEncoder), 
+            params=params, 
             headers={'Content-Type': 'application/json'}, 
             timeout=30)
         response.raise_for_status()
@@ -124,3 +128,14 @@ class FreedbClient:
                 raise DocumentDotExist()
             raise
         return response.json()
+
+    def get_document_head(self, db_name, col_name, doc_id):
+        response = self.session.head(self._urljoin(f'/api/databases/{db_name}/collections/{col_name}/documents/{doc_id}'), 
+                                    timeout=30)
+        try:
+            response.raise_for_status()
+        except HTTPError as ex:
+            if ex.response.status_code == 404:
+                raise DocumentDotExist()
+            raise
+        return response.headers
